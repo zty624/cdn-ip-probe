@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.venv/
+.env
+.env.*
+!.env.example
+results/*
+!results/.gitkeep
+webui/frontend/node_modules/
+webui/frontend/dist/
