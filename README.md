@@ -6,6 +6,16 @@ The probe keeps the request hostname unchanged while forcing the TCP connection
 to a candidate IP. This is useful when you want to compare edge reachability and
 latency without changing the hostname used for TLS SNI or HTTP Host.
 
+## Repository Map
+
+- `probe_cdn_ips.py`: CLI and core probe logic.
+- `webui/server.py`: local FastAPI API for scan jobs and saved results.
+- `webui/frontend/`: Vue/Vite dashboard.
+- `candidates/`: public or example candidate IP lists.
+- `results/`: generated scan outputs; only `results/.gitkeep` is tracked.
+- `tests/`: unit tests for probe helper behavior.
+- `docs/`: maintenance notes and WebUI summaries.
+
 ## Setup
 
 Private targets live in `.env`, which is ignored by git.
@@ -44,10 +54,27 @@ cd webui/frontend && npm install && cd ../..
 ./run_webui.sh
 ```
 
+Use `WEBUI_PORT` or `VITE_PORT` when the default ports are already occupied:
+
+```bash
+WEBUI_PORT=8783 VITE_PORT=5173 ./run_webui.sh
+```
+
 Open:
 
 ```text
 http://127.0.0.1:5173
+```
+
+## Verify
+
+Run the local checks before committing behavior changes:
+
+```bash
+uv run ruff check .
+uv run python -m unittest discover -s tests -v
+uv run python -m compileall probe_cdn_ips.py webui/server.py
+cd webui/frontend && npm run build
 ```
 
 Results are written under:
@@ -55,6 +82,9 @@ Results are written under:
 ```text
 results/YYYYMMDD-HHMMSS/
 ```
+
+If more than one run writes in the same second, later runs use suffixed
+directories such as `results/YYYYMMDD-HHMMSS-02/`.
 
 Useful files:
 
@@ -115,8 +145,9 @@ python ./probe_cdn_ips.py \
 
 ## WebUI API
 
-The WebUI starts a local FastAPI server on `127.0.0.1:8765` and a Vite dev
-server on `127.0.0.1:5173`.
+The WebUI starts a local FastAPI server on `127.0.0.1:${WEBUI_PORT:-8765}` and
+a Vite dev server on `127.0.0.1:${VITE_PORT:-5173}`. The Vite proxy reads the
+same `WEBUI_PORT`, so changing the backend port keeps `/api` requests aligned.
 
 Main endpoints:
 

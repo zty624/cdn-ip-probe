@@ -312,8 +312,16 @@ def write_outputs(
     results: list[ProbeResult],
 ) -> Path:
     stamp = time.strftime("%Y%m%d-%H%M%S")
-    run_dir = out_dir / stamp
-    run_dir.mkdir(parents=True, exist_ok=True)
+    for index in range(1, 1000):
+        suffix = "" if index == 1 else f"-{index:02d}"
+        run_dir = out_dir / f"{stamp}{suffix}"
+        try:
+            run_dir.mkdir(parents=True, exist_ok=False)
+            break
+        except FileExistsError:
+            continue
+    else:
+        raise FileExistsError(f"too many result directories for timestamp {stamp}")
 
     summary_path = run_dir / "summary.tsv"
     with summary_path.open("w", encoding="utf-8", newline="") as file:
